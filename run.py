@@ -5,6 +5,7 @@ from __future__ import print_function
 import argparse
 import os
 from wand.image import Image
+from PIL import Image as PILImage
 import atexit
 import shutil
 
@@ -40,6 +41,12 @@ def get_args():
 
 
 def create_pdf_images(pdf_filename):
+    """Creates a series of png image files based off of the input PDF file.
+   
+    Parameters:
+        - pdf_filename: The filename of the input PDF file.
+    """
+    
     if not os.path.isfile(pdf_filename):
         print("That's not a file.")
         sys.exit(1)
@@ -55,6 +62,31 @@ def create_pdf_images(pdf_filename):
         img.save(filename="temp/pdf.png")
 
 
+def create_consolidated_image():
+    """Creates a consolidated image file from all of the separate PDF images."""
+
+    print("Generating consolidated image file...")
+    
+    files = os.listdir("temp")
+    files.sort()
+    paths = ['temp/' + x for x in files] 
+
+    images = map(PILImage.open, paths)
+
+    widths, heights = zip(*(i.size for i in images)) 
+    max_width = max(widths)
+    total_height = sum(heights)
+
+    new_image = PILImage.new('RGB', (max_width, total_height))
+
+    y_offset = 0
+    for image in images:
+        new_image.paste(image, (0, y_offset))
+        y_offset += image.size[1]
+
+    new_image.save('temp/pdf.png')
+
+
 def cleanup():
     """Removes the temp folder on exit."""
     #shutil.rmtree("temp")
@@ -67,6 +99,7 @@ def main():
 
     pdf_filename, midi_filename = get_args()
     create_pdf_images(pdf_filename)
+    create_consolidated_image()
 
 
 if __name__ == "__main__":
