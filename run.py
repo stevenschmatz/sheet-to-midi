@@ -1,8 +1,12 @@
 """Sheet to MIDI conversion tool"""
 
+from __future__ import print_function
 
 import argparse
 import os
+from wand.image import Image
+import atexit
+import shutil
 
 
 def get_args():
@@ -35,15 +39,34 @@ def get_args():
     return pdf_filename, midi_filename
 
 
-def open_pdf(filename):
-    if not os.path.isfile(filename):
-        print("Shit.")
-    else:
-        print("Woohoo")
+def create_pdf_images(pdf_filename):
+    if not os.path.isfile(pdf_filename):
+        print("That's not a file.")
+        sys.exit(1)
+
+    print("Converting PDF to images...")
+
+    try:
+        os.mkdir('temp')
+    except OSError:
+        pass
+
+    with Image(filename=pdf_filename, resolution=200) as img:
+        img.save(filename="temp/pdf.png")
+
+
+def cleanup():
+    """Removes the temp folder on exit."""
+    #shutil.rmtree("temp")
+    print("Done")
+
 
 def main():
+    # Register the removal of temporary files at exit
+    atexit.register(cleanup)
+
     pdf_filename, midi_filename = get_args()
-    open_pdf(pdf_filename)
+    create_pdf_images(pdf_filename)
 
 
 if __name__ == "__main__":
