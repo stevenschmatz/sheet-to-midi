@@ -51,6 +51,11 @@ def create_pdf_images(pdf_filename):
         print("That's not a file.")
         sys.exit(1)
 
+    try:
+        shutil.rmtree('temp')
+    except:
+        pass
+
     print("Converting PDF to images...")
 
     try:
